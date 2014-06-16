@@ -1,0 +1,22 @@
+# depslib dependency file v1.0
+1402947737 source:/home/daniel/dev/cppprojects/GameOfLife/src/GameOfLife.cpp
+	<cstdint>
+	<cstdio>
+	<cstdlib>
+	<iostream>
+	<thread>
+	<chrono>
+	<vector>
+	<utility>
+	"include/classes/GameOfLife.h"
+
+1402946690 /home/daniel/dev/cppprojects/GameOfLife/src/include/classes/GameOfLife.h
+	<cstdint>
+	<vector>
+	<utility>
+	<algorithm>
+
+1402936097 /home/daniel/dev/cppprojects/GameOfLife/src/include/classes/Cell.h
+	<cstdint>
+	<cstdio>
+
