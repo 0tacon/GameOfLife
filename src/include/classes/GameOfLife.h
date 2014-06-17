@@ -2,6 +2,8 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 
 #define _GAMEOFLIFE_
 
@@ -18,26 +20,49 @@ public:
 
     bool IterateCell(bool cell, uint8_t row, uint8_t col);
 
+    void Play();
+
 private:
     std::vector<std::vector<bool> > Board;
     uint8_t dim;
+    bool evolution;
 };
 
 GameOfLife::GameOfLife(uint8_t side_length)
 {
     dim = side_length;
 
+    evolution = true;
+
+    uint16_t random_num;
+
+    std::srand(std::time(0));
+
     std::vector<bool> vect(dim);
 
-    std::fill(vect.begin(), vect.end(), true);
+    //std::fill(vect.begin(), vect.end(), true);
 
     for (uint8_t i = 0; i < dim; i++)
+    {
+        for (uint8_t j = 0; j < dim; j++)
+        {
+            random_num = std::rand();
+
+            if (random_num%2 == 0)
+                vect[j] = true;
+            else
+                vect[j] = false;
+        }
+
         Board.push_back(vect);
+    }
 }
 
 GameOfLife::GameOfLife(uint8_t side_length, std::vector<std::pair<uint8_t, uint8_t> > initial_state)
 {
     dim = side_length;
+
+    evolution = true;
 
     std::vector<bool> vect(dim);
 
@@ -64,7 +89,7 @@ void GameOfLife::PrintGame()
             if (*b)
                 printf("%c", '#');
             else
-                printf("%c", '-');
+                printf("%c", ' ');
         }
 
         printf("\n");
@@ -85,6 +110,11 @@ void GameOfLife::Iterate()
         }
     }
 
+    if (Board != NextGen)
+        evolution = true;
+    else
+        evolution = false;
+
     Board = NextGen;
 }
 
@@ -92,57 +122,70 @@ bool GameOfLife::IterateCell (bool cell, uint8_t row, uint8_t col)
 {
     uint8_t neighbours = 0;
 
+    std::vector<uint8_t> cols, rows;
+
     if (col > 0 && col < dim -1)
     {
-        for (uint8_t i = col - 1; i < col + 2; i++)
-        {
-            if (row > 0)
-                if (Board[row-1][i])
-                    neighbours++;
-
-            if (row < dim - 1)
-                if (Board[row+1][i])
-                    neighbours++;
-
-            if (Board[row][i] && i != col)
-                neighbours++;
-        }
+        cols.push_back(col - 1);
+        cols.push_back(col);
+        cols.push_back(col + 1);
     }
     else if (col == 0)
     {
-        for (uint8_t i = col; i < col + 2; i++)
-        {
-            if (row > 0)
-                if (Board[row-1][i])
-                    neighbours++;
-
-            if (row < dim - 1)
-                if (Board[row+1][i])
-                    neighbours++;
-
-            if (Board[row][i] && i != col)
-                neighbours++;
-        }
+        cols.push_back(col);
+        cols.push_back(col + 1);
+        cols.push_back(dim - 1);
     }
     else if (col == dim - 1)
     {
-        for (uint8_t i = col - 1; i < col + 1; i++)
-        {
-            if (row > 0)
-                if (Board[row-1][i])
-                    neighbours++;
-
-            if (row < dim - 1)
-                if (Board[row+1][i])
-                    neighbours++;
-
-            if (Board[row][i] && i != col)
-                neighbours++;
-        }
+        cols.push_back(col);
+        cols.push_back(col - 1);
+        cols.push_back(0);
     }
+
+    if (row > 0 && row < dim -1)
+    {
+        rows.push_back(row - 1);
+        rows.push_back(row);
+        rows.push_back(row + 1);
+    }
+    else if (row == 0)
+    {
+        rows.push_back(row);
+        rows.push_back(row + 1);
+        rows.push_back(dim - 1);
+    }
+    else if (row == dim - 1)
+    {
+        rows.push_back(row);
+        rows.push_back(row - 1);
+        rows.push_back(0);
+    }
+
+    for (std::vector<uint8_t>::iterator a = rows.begin(); a != rows.end(); a++)
+        for (std::vector<uint8_t>::iterator b = cols.begin(); b != cols.end(); b++)
+            if ((*a != row || *b != col) && Board[*a][*b])
+                neighbours++;
 
     if (neighbours == 3 || (cell && neighbours == 2))
         return true;
 
     return false;
+}
+
+void GameOfLife::Play()
+{
+    std::system("clear");
+
+    this->PrintGame();
+
+    while (evolution)
+    {
+        this->Iterate();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::system("clear");
+
+        this->PrintGame();
+    }
 }
