@@ -10,8 +10,8 @@
 class GameOfLife
 {
 public:
-    GameOfLife(uint8_t dim);
-    GameOfLife(uint8_t dim, std::vector<std::pair<uint8_t, uint8_t> > initial_state);
+    GameOfLife(uint8_t side_length_x, uint8_t side_length_y);
+    GameOfLife(uint8_t side_length_x, uint8_t side_length_y, std::vector<std::pair<uint8_t, uint8_t> > initial_state);
     ~GameOfLife();
 
     void PrintGame();
@@ -23,14 +23,19 @@ public:
     void Play();
 
 private:
-    std::vector<std::vector<bool> > Board;
-    uint8_t dim;
+    std::vector<std::vector<bool> > Board, PrevGen;
+    uint8_t dim_x, dim_y;
     bool evolution;
+    uint64_t born_cells, dead_cells, generations, first_gen, last_gen;
 };
 
-GameOfLife::GameOfLife(uint8_t side_length)
+GameOfLife::GameOfLife(uint8_t side_length_x, uint8_t side_length_y)
 {
-    dim = side_length;
+    dim_x = side_length_x;
+    dim_y = side_length_y;
+    born_cells = 0;
+    dead_cells = 0;
+    generations = 0;
 
     evolution = true;
 
@@ -38,42 +43,58 @@ GameOfLife::GameOfLife(uint8_t side_length)
 
     std::srand(std::time(0));
 
-    std::vector<bool> vect(dim);
+    std::vector<bool> vect(dim_x);
 
-    //std::fill(vect.begin(), vect.end(), true);
-
-    for (uint8_t i = 0; i < dim; i++)
+    for (uint8_t i = 0; i < dim_y; i++)
     {
-        for (uint8_t j = 0; j < dim; j++)
+        for (uint8_t j = 0; j < dim_x; j++)
         {
             random_num = std::rand();
 
             if (random_num%2 == 0)
+            {
                 vect[j] = true;
+                born_cells++;
+            }
             else
                 vect[j] = false;
         }
 
         Board.push_back(vect);
     }
+
+    PrevGen = Board;
+
+    first_gen = born_cells;
 }
 
-GameOfLife::GameOfLife(uint8_t side_length, std::vector<std::pair<uint8_t, uint8_t> > initial_state)
+GameOfLife::GameOfLife(uint8_t side_length_x, uint8_t side_length_y, std::vector<std::pair<uint8_t, uint8_t> > initial_state)
 {
-    dim = side_length;
+    dim_x = side_length_x;
+    dim_y = side_length_y;
+    born_cells = 0;
+    dead_cells = 0;
+    generations = 0;
 
     evolution = true;
 
-    std::vector<bool> vect(dim);
+    std::vector<bool> vect(dim_x);
 
     std::fill(vect.begin(), vect.end(), false);
 
-    for (uint8_t i = 0; i < dim; i++)
+    for (uint8_t i = 0; i < dim_y; i++)
         Board.push_back(vect);
 
     for (std::vector<std::pair<uint8_t, uint8_t> >::iterator val = initial_state.begin(); val != initial_state.end(); val++)
-        if (val->first < dim && val->second < dim)
+        if (val->first < dim_y && val->second < dim_x)
+        {
             Board[val->first][val->second] = true;
+            born_cells++;
+        }
+
+    PrevGen = Board;
+
+    first_gen = born_cells;
 }
 
 GameOfLife::~GameOfLife() {}
@@ -102,20 +123,23 @@ void GameOfLife::Iterate()
 {
     std::vector<std::vector<bool> > NextGen = Board;
 
-    for (uint8_t a = 0; a < dim; a++)
+    for (uint8_t a = 0; a < dim_y; a++)
     {
-        for (uint8_t b = 0; b < dim; b++)
+        for (uint8_t b = 0; b < dim_x; b++)
         {
             NextGen[a][b] = IterateCell(Board[a][b], a, b);
         }
     }
 
-    if (Board != NextGen)
+    if (PrevGen != NextGen)
         evolution = true;
     else
         evolution = false;
 
+    PrevGen = Board;
     Board = NextGen;
+
+    generations++;
 }
 
 bool GameOfLife::IterateCell (bool cell, uint8_t row, uint8_t col)
@@ -124,7 +148,7 @@ bool GameOfLife::IterateCell (bool cell, uint8_t row, uint8_t col)
 
     std::vector<uint8_t> cols, rows;
 
-    if (col > 0 && col < dim -1)
+    if (col > 0 && col < dim_x -1)
     {
         cols.push_back(col - 1);
         cols.push_back(col);
@@ -134,16 +158,16 @@ bool GameOfLife::IterateCell (bool cell, uint8_t row, uint8_t col)
     {
         cols.push_back(col);
         cols.push_back(col + 1);
-        cols.push_back(dim - 1);
+        cols.push_back(dim_x - 1);
     }
-    else if (col == dim - 1)
+    else if (col == dim_x - 1)
     {
         cols.push_back(col);
         cols.push_back(col - 1);
         cols.push_back(0);
     }
 
-    if (row > 0 && row < dim -1)
+    if (row > 0 && row < dim_y -1)
     {
         rows.push_back(row - 1);
         rows.push_back(row);
@@ -153,9 +177,9 @@ bool GameOfLife::IterateCell (bool cell, uint8_t row, uint8_t col)
     {
         rows.push_back(row);
         rows.push_back(row + 1);
-        rows.push_back(dim - 1);
+        rows.push_back(dim_y - 1);
     }
-    else if (row == dim - 1)
+    else if (row == dim_y - 1)
     {
         rows.push_back(row);
         rows.push_back(row - 1);
@@ -168,7 +192,14 @@ bool GameOfLife::IterateCell (bool cell, uint8_t row, uint8_t col)
                 neighbours++;
 
     if (neighbours == 3 || (cell && neighbours == 2))
+    {
+        if (!cell)
+            born_cells++;
+
         return true;
+    }
+    else if (cell)
+        dead_cells++;
 
     return false;
 }
@@ -188,4 +219,8 @@ void GameOfLife::Play()
 
         this->PrintGame();
     }
+
+    last_gen = born_cells - dead_cells;
+
+    printf("The game of life has reached a stable equilibrium. %lu cells remain alive, the first generation contained %lu live cells, %lu generations came and went, %lu cells were born and %lu cells died.\n", last_gen, first_gen, generations, born_cells, dead_cells);
 }

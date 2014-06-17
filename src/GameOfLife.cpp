@@ -13,7 +13,7 @@
 
 int main ()
 {
-    std::vector<std::pair<uint8_t, uint8_t> > initial_state;
+    //std::vector<std::pair<uint8_t, uint8_t> > initial_state;
 
     /* GLIDER */
     /*initial_state.push_back(std::make_pair(0, 2));
@@ -32,7 +32,7 @@ int main ()
 
         }*/
 
-    GameOfLife game(100);
+    GameOfLife game(165, 40);
 
     game.Play();
 
