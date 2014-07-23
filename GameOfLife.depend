@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1403037959 source:/home/daniel/dev/cppprojects/GameOfLife/src/GameOfLife.cpp
+1405356859 source:/home/daniel/dev/cppprojects/GameOfLife/src/GameOfLife.cpp
 	<cstdint>
 	<cstdio>
 	<cstdlib>
@@ -10,7 +10,7 @@
 	<utility>
 	"include/classes/GameOfLife.h"
 
-1403038146 /home/daniel/dev/cppprojects/GameOfLife/src/include/classes/GameOfLife.h
+1405358064 /home/daniel/dev/cppprojects/GameOfLife/src/include/classes/GameOfLife.h
 	<cstdint>
 	<vector>
 	<utility>
